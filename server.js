@@ -6,6 +6,7 @@ const fccTesting = require('./freeCodeCamp/fcctesting.js');
 const session = require('express-session');
 const passport = require('passport');
 const { ObjectID } = require('mongodb');
+const LocalStategy =  require('passport-local');
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(session({
 }));
 
 myDB(async client => {
-  const myDB = await client.db('database').collection('users');
+  const myDB = await client.db('persondb').collection('people');
 
   app.route('/').get((req, res) => {
     res.render('index', { 
@@ -44,6 +45,16 @@ myDB(async client => {
     });
   });
 
+  passport.use(new LocalStategy((username, password, done) => {
+    myDB.findOne({ username: username }, (err, user) => {
+      console.log(`User ${username} attempted to log in`);
+      if (err) return done(err);
+      if (!user) return done(null, false);
+      if (password !== user.password) return done(null, false);
+      return done(null, user);
+    });
+  }));
+
 }).catch( e => {
   app.route('/').get((req, res) => {
     res.render('index', { 
@@ -52,7 +63,6 @@ myDB(async client => {
     });
   });
 });
-
 
 app.set('view engine', 'pug');
 app.set('views', './views/pug');
@@ -63,7 +73,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
