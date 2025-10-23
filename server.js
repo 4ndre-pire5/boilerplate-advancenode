@@ -6,7 +6,7 @@ const fccTesting = require('./freeCodeCamp/fcctesting.js');
 
 const app = express();
 
-// add this CORS header
+// add this CORS header to pass the first challenge
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.route('/').get((req, res) => {
-  res.render('index');
+  res.render('index', { title: 'Hello', message: 'Please log in' });
 });
 
 const PORT = process.env.PORT || 3000;
