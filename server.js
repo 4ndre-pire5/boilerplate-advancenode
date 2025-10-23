@@ -6,6 +6,14 @@ const fccTesting = require('./freeCodeCamp/fcctesting.js');
 
 const app = express();
 
+// add this CORS header
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  next();
+})
+
 app.set('view engine', 'pug');
 app.set('views', './views/pug');
 fccTesting(app); //For FCC testing purposes
