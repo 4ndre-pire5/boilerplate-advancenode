@@ -37,17 +37,33 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 myDB(async client => {
-  const myDB = await client.db('persondb').collection('people');
+  const myDataBase = await client.db('persondb').collection('people');
 
   app.route('/').get((req, res) => {
     res.render('index', { 
       title: 'Connected to Database', 
-      message: 'Please log in' 
+      message: 'Please log in',
+      showLogin: true 
     });
+  });
+
+  app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
+    res.redirect('/profile');
+  });
+
+  function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.redirect('/');
+  }
+
+  app.route('/profile').get(ensureAuthenticated, (req, res) => {
+    res.render('profile');
   });
   
   passport.use(new LocalStrategy((username, password, done) => {
-    myDB.findOne({ username: username }, (err, user) => {
+    myDataBase.findOne({ username: username }, (err, user) => {
       console.log(`User ${username} attempted to log in`);
       if (err) return done(err);
       if (!user) return done(null, false);
@@ -61,7 +77,7 @@ myDB(async client => {
   });
   
   passport.deserializeUser((id, done) => {
-    myDB.findOne({ _id: new ObjectID(id) }, (err, doc) => {
+    myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
       done(null, doc);
     });
   });
