@@ -37,7 +37,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 myDB(async client => {
-  const myDataBase = await client.db('persondb').collection('people');
+  const myDataBase = await client.db('person_db').collection('people');
 
   app.route('/').get((req, res) => {
     res.render('index', { 
@@ -51,15 +51,8 @@ myDB(async client => {
     res.redirect('/profile');
   });
 
-  function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    res.redirect('/');
-  }
-
   app.route('/profile').get(ensureAuthenticated, (req, res) => {
-    res.render('profile');
+    res.render('profile', {username: req.user.username});
   });
   
   passport.use(new LocalStrategy((username, password, done) => {
@@ -90,6 +83,13 @@ myDB(async client => {
     });
   });
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
