@@ -8,9 +8,18 @@ module.exports = function (app, myDataBase) {
             title: 'Connected to Database',
             message: 'Please log in',
             showLogin: true,
-            showRegistration: true
+            showRegistration: true,
+            showSocialAuth: true
         });
     });
+
+    // Github login route
+    app.route('/auth/github').get(passport.authenticate('github'));
+
+    // Github login callback route
+    app.route('/auth/github/calback').get(passport.authenticate('github', { failureRedirect: '/'}), (req, res) => {
+        res.redirect('/profile');
+    })
 
     // Login route
     app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
