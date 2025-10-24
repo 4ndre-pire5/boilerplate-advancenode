@@ -13,14 +13,6 @@ module.exports = function (app, myDataBase) {
         });
     });
 
-    // Github login route
-    app.route('/auth/github').get(passport.authenticate('github'));
-
-    // Github login callback route
-    app.route('/auth/github/calback').get(passport.authenticate('github', { failureRedirect: '/'}), (req, res) => {
-        res.redirect('/profile');
-    })
-
     // Login route
     app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
         res.redirect('/profile');
@@ -66,6 +58,14 @@ module.exports = function (app, myDataBase) {
             res.redirect('/profile');
         }
     );
+
+    // Github login route
+    app.route('/auth/github').get(passport.authenticate('github'));
+
+    // Github login callback route
+    app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/' }), (req, res) => {
+        res.redirect('/profile');
+    });
 
     app.use((req, res) => {
         res.status(404)
