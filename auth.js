@@ -30,13 +30,12 @@ module.exports = function (app, myDataBase) {
     passport.use(new GithubStrategy({
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: 'http://localhost:8080'
+        callbackURL: 'http://localhost:8080/auth/github/callback'
         },
         function(acessToken, refreshToken, profile, cb) {
             console.log(profile);
             myDataBase.findOneAndUpdate(
                 { id: profile.id },
-                {},
                 {
                     $setOnInsert: {
                         id: profile.id,
