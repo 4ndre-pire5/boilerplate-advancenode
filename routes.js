@@ -68,11 +68,6 @@ module.exports = function (app, myDataBase) {
         res.redirect('/chat');
     });
 
-    // Chat route
-    app.route('/chat').get(ensureAuthenticated, (req, res) => {
-        res.render('/chat', { user: req.user })
-    });
-
     app.use((req, res) => {
         res.status(404)
             .type('text')
