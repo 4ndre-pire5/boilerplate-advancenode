@@ -7,6 +7,11 @@ const session = require('express-session');
 const passport = require('passport');
 const routes = require('./routes.js');
 const auth = require('./auth.js');
+const passportSocketIo = require('passport.socketio');
+const MongoStore = require('connect-mongo')(session);
+const URI = process.env.MONGO_URI;
+const store = new MongoStore({ url: URI });
+const cookieParser =  require('cookie-parser');
 
 const app = express();
 
@@ -28,7 +33,9 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: { secure: false },
+  key: 'express.sid',
+  store: store
 }));
 
 app.use(passport.initialize());
@@ -38,6 +45,17 @@ fccTesting(app); //For FCC testing purposes
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+io.use(
+  passportSocketIo.authorize({
+    cookieParser: cookieParser,
+    key: 'express.sid',
+    secret: process.env.SESSION_SECRET,
+    store: store,
+    success: onAuthorizeSuccess,
+    fail: onAuhtorizeFail
+  })
+);
 
 myDB(async client => {
   const myDataBase = await client.db('person_db').collection('people');
@@ -49,13 +67,14 @@ myDB(async client => {
   io.on('connection', (socket) => {
     console.log('A user has connected');
     ++currentUsers;
-    io.emit('user count', currentUsers);  
+    io.emit('user count', currentUsers); 
+
 
     socket.on('disconnect', () => {
       console.log('A user has disconnect');
-      --currentUsers
+      --currentUsers;
       io.emit('user count', currentUsers);
-    })
+    });
   });
 
 }).catch(e => {
@@ -66,6 +85,17 @@ myDB(async client => {
     });
   });
 });
+
+function onAuthorizeSuccess(data, accept) {
+  console.log('successful connection to  socket.io');
+  accept(null, true);
+}
+
+function onAuhtorizeFail(data, message, error, accept) {
+  if (error) throw new Error(message);
+  console.log('failed connection to socket.io:', message);
+  accept(null, false);
+}
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
