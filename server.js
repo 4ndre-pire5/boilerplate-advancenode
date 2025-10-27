@@ -46,10 +46,16 @@ myDB(async client => {
 
   let currentUsers = 0;
 
-  io.on('connection', socket => {
+  io.on('connection', (socket) => {
     console.log('A user has connected');
     ++currentUsers;
     io.emit('user count', currentUsers);  
+
+    socket.on('disconnect', () => {
+      console.log('A user has disconnect');
+      --currentUsers
+      io.emit('user count', currentUsers);
+    })
   });
 
 }).catch(e => {
